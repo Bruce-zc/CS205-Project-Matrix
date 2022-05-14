@@ -310,4 +310,226 @@ public:
         cerr << "\033[31;1mCan't do cross product operation, only support 2-dim and 3-dim column vectors.\033[0m" << endl;
         return Matrix();
     }
+    
+    // Max
+    // Return the max element in the matrix.
+    T max()
+    {
+        T max_value = matrix[0][0];
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < column; j++)
+            {
+                if (matrix[i][j] > max_value)
+                {
+                    max_value = matrix[i][j];
+                }
+            }
+        }
+        return max_value;
+    }
+
+    // Return the max element by row or column.
+    Matrix max(int axis, bool keepdims = false)
+    {
+        if (axis == 0)
+        {
+            Matrix answer(1, column);
+            for (int i = 0; i < column; i++)
+            {
+                T max_value = matrix[0][i];
+                for (int j = 0; j < row; j++)
+                {
+                    if (matrix[j][i] > max_value)
+                    {
+                        max_value = matrix[j][i];
+                    }
+                }
+                answer[0][i] = max_value;
+            }
+            return answer;
+        }
+        else if (axis == 1)
+        {
+            Matrix answer(row, 1);
+            for (int i = 0; i < row; i++)
+            {
+                T max_value = matrix[i][0];
+                for (int j = 0; j < column; j++)
+                {
+                    if (matrix[i][j] > max_value)
+                    {
+                        max_value = matrix[i][j];
+                    }
+                }
+                answer[i][0] = max_value;
+            }
+            if (keepdims)
+            {
+                return answer;
+            }
+            else
+            {
+                return answer.transpose();
+            }
+        }
+        else
+        {
+            cerr << "\033[31;1mCan't do max operation on specified axis, only support axis 0 and 1.\033[0m" << endl;
+            return Matrix();
+        }
+    }
+
+    // Min
+    // Return the min element in the matrix.
+    T min()
+    {
+        T min_value = matrix[0][0];
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < column; j++)
+            {
+                if (matrix[i][j] < min_value)
+                {
+                    min_value = matrix[i][j];
+                }
+            }
+        }
+        return min_value;
+    }
+
+    // Return the min element by row or column.
+    Matrix min(int axis, bool keepdims = false)
+    {
+        if (axis == 0)
+        {
+            Matrix answer(1, column);
+            for (int i = 0; i < column; i++)
+            {
+                T min_value = matrix[0][i];
+                for (int j = 0; j < row; j++)
+                {
+                    if (matrix[j][i] < min_value)
+                    {
+                        min_value = matrix[j][i];
+                    }
+                }
+                answer[0][i] = min_value;
+            }
+            return answer;
+        }
+        else if (axis == 1)
+        {
+            Matrix answer(row, 1);
+            for (int i = 0; i < row; i++)
+            {
+                T min_value = matrix[i][0];
+                for (int j = 0; j < column; j++)
+                {
+                    if (matrix[i][j] < min_value)
+                    {
+                        min_value = matrix[i][j];
+                    }
+                }
+                answer[i][0] = min_value;
+            }
+            if (keepdims)
+            {
+                return answer;
+            }
+            else
+            {
+                return answer.transpose();
+            }
+        }
+        else
+        {
+            cerr << "\033[31;1mCan't do min operation on specified axis, only support axis 0 and 1.\033[0m" << endl;
+            return Matrix();
+        }
+    }
+
+    // Sum
+    // Return the sum of all elements in the matrix.
+    T sum()
+    {
+        T sum_value = 0;
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < column; j++)
+            {
+                sum_value += matrix[i][j];
+            }
+        }
+        return sum_value;
+    }
+
+    // Return the max element by row or column.
+    Matrix sum(int axis, bool keepdims = false)
+    {
+        if (axis == 0)
+        {
+            Matrix answer(1, column);
+            for (int i = 0; i < column; i++)
+            {
+                T sum_value = 0;
+                for (int j = 0; j < row; j++)
+                {
+                    sum_value += matrix[j][i];
+                }
+                answer[0][i] = sum_value;
+            }
+            return answer;
+        }
+        else if (axis == 1)
+        {
+            Matrix answer(row, 1);
+            for (int i = 0; i < row; i++)
+            {
+                T sum_value = 0;
+                for (int j = 0; j < column; j++)
+                {
+                    sum_value += matrix[i][j];
+                }
+                answer[i][0] = sum_value;
+            }
+            if (keepdims)
+            {
+                return answer;
+            }
+            else
+            {
+                return answer.transpose();
+            }
+        }
+        else
+        {
+            cerr << "\033[31;1mCan't do sum operation on specified axis, only support axis 0 and 1.\033[0m" << endl;
+            return Matrix();
+        }
+    }
+
+    // Avg
+    // Return the average element in the matrix.
+    T avg()
+    {
+        return sum() / (row * column);
+    }
+
+    Matrix avg(int axis, bool keepdims = false)
+    {
+        if (axis == 0)
+        {
+            return sum(axis, keepdims) / row;
+        }
+        else if (axis == 1)
+        {
+            return sum(axis, keepdims) / column;
+        }
+        else
+        {
+            cerr << "\033[31;1mCan't do avg operation on specified axis, only support axis 0 and 1.\033[0m" << endl;
+            return Matrix();
+        }
+    }
 };
