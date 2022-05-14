@@ -90,6 +90,40 @@ int main()
 
     cout << "Q9 - Exception 4: Cross product, not supported:" << endl;
     cout << "Column Vector 1 cross product (Column Vector 2)T = \n" << col_vec1.cross(col_vec2.transpose()) << endl << endl;
+    
+    cout << "Q4 - Test 1: Max:" << endl;
+    cout << "Matrix1 = \n" << matrix1 << endl << endl;
+    cout << "max of Matrix1 = \n" << matrix1.max() << endl << endl;
+    cout << "max of Matrix1 by column = \n" << matrix1.max(0) << endl << endl;
+    cout << "max of Matrix1 by row = \n" << matrix1.max(1) << endl << endl;
+    cout << "(Bonus-1) max of Matrix1 by row (keepdims = true) = \n" << matrix1.max(1, true) << endl << endl;
+
+    cout << "Q4 - Test 2: Min:" << endl;
+    cout << "Matrix1 = \n" << matrix1 << endl << endl;
+    cout << "min of Matrix1 = \n" << matrix1.min() << endl << endl;
+    cout << "min of Matrix1 by column = \n" << matrix1.min(0) << endl << endl;
+    cout << "min of Matrix1 by row = \n" << matrix1.min(1) << endl << endl;
+    cout << "(Bonus-1) min of Matrix1 by row (keepdims = true) = \n" << matrix1.min(1, true) << endl << endl;
+
+    cout << "Q4 - Test 3: Sum:" << endl;
+    cout << "Matrix1 = \n" << matrix1 << endl << endl;
+    cout << "sum of Matrix1 = \n" << matrix1.sum() << endl << endl;
+    cout << "sum of Matrix1 by column = \n" << matrix1.sum(0) << endl << endl;
+    cout << "sum of Matrix1 by row = \n" << matrix1.sum(1) << endl << endl;
+    cout << "(Bonus-1) sum of Matrix1 by row (keepdims = true) = \n" << matrix1.sum(1, true) << endl << endl;
+
+    cout << "Q4 - Test 4: Avg:" << endl;
+    cout << "Matrix1 = \n" << matrix1 << endl << endl;
+    cout << "avg of Matrix1 = \n" << matrix1.avg() << endl << endl;
+    cout << "avg of Matrix1 by column = \n" << matrix1.avg(0) << endl << endl;
+    cout << "avg of Matrix1 by row = \n" << matrix1.avg(1) << endl << endl;
+    cout << "(Bonus-1) avg of Matrix1 by row (keepdims = true) = \n" << matrix1.avg(1, true) << endl << endl;
+
+    cout << "Q9 - Exception 5: Max/min/sum on wrong dimension:" << endl;
+    cout << "max of Matrix1 by axis 2 = \n" << matrix1.max(2) << endl << endl;
+    cout << "min of Matrix1 by axis 2 = \n" << matrix1.min(-1) << endl << endl;
+    cout << "sum of Matrix1 by axis 2 = \n" << matrix1.sum(7) << endl << endl;
+    cout << "avg of Matrix1 by axis 2 = \n" << matrix1.avg(-3.14) << endl << endl;
 
     return 0;
 }
