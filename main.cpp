@@ -12,6 +12,7 @@ int main()
     vector<vector<double>> vec1 = {{-0.4, 2.1, 3.7, -4}, {5.8, 1.2, 0.7, -0.8}, {1.9, 1.1, -1, 2}, {-4.3, 4.1, 5.5, 6.2}};
     Matrix<double> matrix1(vec1);
     cout << "Matrix1 = \n" << matrix1 << endl << endl;
+
     cout << "Matrix 2 (4 x 4 double matrix):" << endl;
     vector<vector<double>> vec2 = {{1.15, 2.21, -0.3, 4}, {-5, -6, -3.18, 0.8}, {0.9, 0.1, 0.1, 0.2}, {1.3, -1.4, -0.5, 2.6}};
     Matrix<double> matrix2(vec2);
@@ -28,7 +29,6 @@ int main()
     vector<vector<complex<double>>> vec4 = {{complex<double>(1, 2), -3, 1.1}, {-5, 1, complex<double>(0, 2)}, {complex<double>(9, 2), 3, 0}};
     Matrix<complex<double>> matrix4(vec4);
     cout << "Matrix4 = \n"  << matrix4 << endl << endl;
-
     cout << "Q3 - Test 1: Add 2 matrices:" << endl;
     cout << "Matrix1 + Matrix2 = \n" << (matrix1 + matrix2) << endl << endl;
 
@@ -90,7 +90,7 @@ int main()
 
     cout << "Q9 - Exception 4: Cross product, not supported:" << endl;
     cout << "Column Vector 1 cross product (Column Vector 2)T = \n" << col_vec1.cross(col_vec2.transpose()) << endl << endl;
-    
+
     cout << "Q4 - Test 1: Max:" << endl;
     cout << "Matrix1 = \n" << matrix1 << endl << endl;
     cout << "max of Matrix1 = \n" << matrix1.max() << endl << endl;
@@ -124,6 +124,28 @@ int main()
     cout << "min of Matrix1 by axis 2 = \n" << matrix1.min(-1) << endl << endl;
     cout << "sum of Matrix1 by axis 2 = \n" << matrix1.sum(7) << endl << endl;
     cout << "avg of Matrix1 by axis 2 = \n" << matrix1.avg(-3.14) << endl << endl;
+
+    cout << "Q6 - Test 1: Slice:" << endl;
+    cout << "Matrix1 = \n" << matrix1 << endl << endl;
+    cout << "Matrix1[1:2, 1:2] = \n" << matrix1.slice(1, 2, 1, 2) << endl << endl;
+    cout << "Matrix1[1:4, 1:4] = \n" << matrix1.slice(1, 4, 1, 4) << endl << endl;
+    cout << "Matrix1[0:3, 1:3] = \n" << matrix1.slice(0, 3, 1, 3) << endl << endl;
+
+    cout << "Q9 - Exception 6: Slice with wrong input:" << endl;
+    cout << "Matrix1[1:5, 1:5] = \n" << matrix1.slice(1, 5, 1, 5) << endl << endl;
+    cout << "Matrix1[2:1, 2:1] = \n" << matrix1.slice(2, 1, 2, 1) << endl << endl;
+
+    cout << "Q6 - Test 2: Reshape:" << endl;
+    cout << "Matrix1 = \n" << matrix1 << endl << endl;
+    cout << "Matrix1.reshape(2, 8) = \n" << matrix1.reshape(2, 8) << endl << endl;
+    cout << "(Bonus-2) Matrix1.reshape(2, 8), column first = \n" << matrix1.reshape(2, 8, true) << endl << endl;
+    cout << "(Bonus-2) Matrix1.reshape(8, -1) = \n" << matrix1.reshape(8, -1) << endl << endl;
+    cout << "(Bonus-2) Matrix1.reshape(-1, 1) = \n" << matrix1.reshape(-1, 1, true) << endl << endl;
+
+    cout << "Q9 - Exception 7: Reshape with wrong input:" << endl;
+    cout << "Matrix1.reshape(3, 7) = \n" << matrix1.reshape(3, 7) << endl << endl;
+    cout << "Matrix1.reshape(3, -1) = \n" << matrix1.reshape(3, -1) << endl << endl;
+    cout << "Matrix1.reshape(-1, -1) = \n" << matrix1.reshape(-1, -1) << endl << endl;
 
     return 0;
 }
