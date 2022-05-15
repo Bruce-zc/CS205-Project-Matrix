@@ -2,6 +2,7 @@
 #include <vector>
 #include <complex>
 #include <cmath>
+#include <typeinfo>
 #include "Matrix.h"
 
 using namespace std;
@@ -18,7 +19,6 @@ public:
     -- It is called with no parameter.
     -- It sets row and column as zero. */
     Matrix() : row(0), column(0) { matrix.resize(0); }
-
 
     /* Constructor with given size:
     -- It is called with two parameters: (int) row and column.
@@ -280,11 +280,13 @@ public:
             cerr << "\033[31;1mCan't do dot product operation, only support vectors.\033[0m" << endl;
             return 0;
         }
+
         T answer = 0;
         for (int i = 0; i < row; i++)
         {
-            answer += matrix[i][0] * other[0][i];
+            answer += matrix[i][0] * other.matrix[0][i];
         }
+
         return answer;
     }
 
@@ -310,7 +312,7 @@ public:
         cerr << "\033[31;1mCan't do cross product operation, only support 2-dim and 3-dim column vectors.\033[0m" << endl;
         return Matrix();
     }
-    
+
     // Max
     // Return the max element in the matrix.
     T max()
@@ -531,5 +533,72 @@ public:
             cerr << "\033[31;1mCan't do avg operation on specified axis, only support axis 0 and 1.\033[0m" << endl;
             return Matrix();
         }
+    }
+
+    Matrix slice(int start_row, int end_row, int start_col, int end_col)
+    {
+        if (start_row < 0 || start_col < 0 || start_row > row || start_col > column || end_row < 0 || end_col < 0 || end_row > row || end_col > column)
+        {
+            cerr << "\033[31;1mError, invalid input: index out of bound.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+
+        if (start_row > end_row || start_col > end_col)
+        {
+            cerr << "\033[31;1mError, invalid input: end index greater than start index.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+
+        Matrix answer(end_row - start_row, end_col - start_col);
+        for (int i = 0; i < answer.row; i++)
+        {
+            for (int j = 0; j < answer.column; j++)
+            {
+                answer[i][j] = matrix[start_row + i][start_col + j];
+            }
+        }
+        return answer;
+    }
+
+    Matrix reshape(int num_row, int num_col, bool column_first = false)
+    {
+        if (num_row == -1 && num_col != -1 && row * column % num_col == 0)
+        {
+            num_row = row * column / num_col;
+        }
+        else if (num_col == -1 && num_row != -1 && row * column % num_row == 0)
+        {
+            num_col = row * column / num_row;
+        }
+        else if (num_row == -1 && num_col == -1)
+        {
+            cerr << "\033[31;1mError, invalid input: please at least specify the size on one dimension.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+
+        if (num_row * num_col != row * column)
+        {
+            cerr << "\033[31;1mError, invalid input: can't reshape to the specified shape.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+
+        Matrix answer(num_row, num_col);
+        for (int i = 0; i < answer.row; i++)
+        {
+            for (int j = 0; j < answer.column; j++)
+            {
+                if (!column_first)
+                {
+                    int index = i * answer.column + j;
+                    answer[i][j] = matrix[index / column][index % column];
+                }
+                else
+                {
+                    int index = i + j * answer.row;
+                    answer[i][j] = matrix[index % row][index / row];
+                }
+            }
+        }
+        return answer;
     }
 };
