@@ -601,4 +601,95 @@ public:
         }
         return answer;
     }
+    
+    // Another constructor to support OpenCV Mat
+    Matrix(cv::Mat CV_mat)
+    {
+        row = CV_mat.rows;
+        column = CV_mat.cols * CV_mat.channels();
+        this->matrix.resize(row);
+        for (int i = 0; i < row; i++)
+        {
+            this->matrix[i].resize(column);
+        }
+        for (int i = 0; i < CV_mat.rows; i++)
+        {
+            for (int j = 0; j < CV_mat.cols; j++)
+            {
+                for (int k = 0; k < CV_mat.channels(); k++)
+                {
+                    switch (CV_mat.type())
+                    {
+                    case CV_8U:
+                        matrix[i][j + k] = CV_mat.at<uchar>(i, j);
+                        break;
+                    case CV_8S:
+                        matrix[i][j + k] = CV_mat.at<char>(i, j);
+                        break;
+                    case CV_16U:
+                        matrix[i][j + k] = CV_mat.at<ushort>(i, j);
+                        break;
+                    case CV_16S:
+                        matrix[i][j + k] = CV_mat.at<short>(i, j);
+                        break;
+                    case CV_32S:
+                        matrix[i][j + k] = CV_mat.at<int>(i, j);
+                        break;
+                    case CV_32F:
+                        matrix[i][j + k] = CV_mat.at<float>(i, j);
+                        break;
+                    case CV_64F:
+                        matrix[i][j + k] = CV_mat.at<double>(i, j);
+                        break;
+                    case CV_16F:
+                        matrix[i][j + k] = CV_mat.at<double>(i, j);
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    // Matrix to mat
+    cv::Mat toMat(int type = 0)
+    {
+        cv::Mat answer = cv::Mat::zeros(row, column, type);
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < column; j++)
+            {
+                switch (type)
+                {
+                case CV_8U:
+                    answer.at<uchar>(i, j) = matrix[i][j];
+                    break;
+                case CV_8S:
+                    answer.at<char>(i, j) = matrix[i][j];
+                    break;
+                case CV_16U:
+                    answer.at<ushort>(i, j) = matrix[i][j];
+                    break;
+                case CV_16S:
+                    answer.at<short>(i, j) = matrix[i][j];
+                    break;
+                case CV_32S:
+                    answer.at<int>(i, j) = matrix[i][j];
+                    break;
+                case CV_32F:
+                    answer.at<float>(i, j) = matrix[i][j];
+                    break;
+                case CV_64F:
+                    answer.at<double>(i, j) = matrix[i][j];
+                    break;
+                case CV_16F:
+                    answer.at<double>(i, j) = matrix[i][j];
+                    break;
+                default:
+                    break;
+                }
+            }
+        }
+        return answer;
+    }
 };
