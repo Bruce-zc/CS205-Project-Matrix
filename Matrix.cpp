@@ -605,52 +605,56 @@ public:
     // Another constructor to support OpenCV Mat
     Matrix(cv::Mat CV_mat)
     {
+        if (CV_mat.channels() != 1)
+        {
+            cerr << "\033[31;1mError, invalid input: only support 2-dim input (1 channel image).\033[0m" << endl;
+            return;
+        }
         row = CV_mat.rows;
-        column = CV_mat.cols * CV_mat.channels();
+        column = CV_mat.cols;
         this->matrix.resize(row);
         for (int i = 0; i < row; i++)
         {
             this->matrix[i].resize(column);
         }
+
         for (int i = 0; i < CV_mat.rows; i++)
         {
             for (int j = 0; j < CV_mat.cols; j++)
             {
-                for (int k = 0; k < CV_mat.channels(); k++)
+                switch (CV_mat.type())
                 {
-                    switch (CV_mat.type())
-                    {
-                    case CV_8U:
-                        matrix[i][j + k] = CV_mat.at<uchar>(i, j);
-                        break;
-                    case CV_8S:
-                        matrix[i][j + k] = CV_mat.at<char>(i, j);
-                        break;
-                    case CV_16U:
-                        matrix[i][j + k] = CV_mat.at<ushort>(i, j);
-                        break;
-                    case CV_16S:
-                        matrix[i][j + k] = CV_mat.at<short>(i, j);
-                        break;
-                    case CV_32S:
-                        matrix[i][j + k] = CV_mat.at<int>(i, j);
-                        break;
-                    case CV_32F:
-                        matrix[i][j + k] = CV_mat.at<float>(i, j);
-                        break;
-                    case CV_64F:
-                        matrix[i][j + k] = CV_mat.at<double>(i, j);
-                        break;
-                    case CV_16F:
-                        matrix[i][j + k] = CV_mat.at<double>(i, j);
-                        break;
-                    default:
-                        break;
-                    }
+                case CV_8U:
+                    matrix[i][j] = CV_mat.at<uchar>(i, j);
+                    break;
+                case CV_8S:
+                    matrix[i][j] = CV_mat.at<char>(i, j);
+                    break;
+                case CV_16U:
+                    matrix[i][j] = CV_mat.at<ushort>(i, j);
+                    break;
+                case CV_16S:
+                    matrix[i][j] = CV_mat.at<short>(i, j);
+                    break;
+                case CV_32S:
+                    matrix[i][j] = CV_mat.at<int>(i, j);
+                    break;
+                case CV_32F:
+                    matrix[i][j] = CV_mat.at<float>(i, j);
+                    break;
+                case CV_64F:
+                    matrix[i][j] = CV_mat.at<double>(i, j);
+                    break;
+                case CV_16F:
+                    matrix[i][j] = CV_mat.at<double>(i, j);
+                    break;
+                default:
+                    break;
                 }
             }
         }
     }
+
     // Matrix to mat
     cv::Mat toMat(int type = 0)
     {
