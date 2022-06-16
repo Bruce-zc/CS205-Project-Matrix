@@ -3,9 +3,11 @@
 #include <complex>
 #include <cmath>
 #include <typeinfo>
+#include <opencv2/opencv.hpp>
 #include "Matrix.h"
 
 using namespace std;
+using namespace cv;
 
 template <class T>
 class Matrix
@@ -601,7 +603,7 @@ public:
         }
         return answer;
     }
-    
+
     // Another constructor to support OpenCV Mat
     Matrix(cv::Mat CV_mat)
     {
@@ -695,5 +697,244 @@ public:
             }
         }
         return answer;
+    }
+
+    Matrix eigenvalue() // Calculate eigenvalue (only real eigenvalue)
+    {
+        if (row != column)
+        {
+            cerr << "\033[31;1mMatrix must be a square matrix.\033[0m" << endl;
+            return Matrix(this->row, 0);
+        }
+        Mat Mat_1 = toMat(CV_64F);
+        Mat eigenvaluesMat;
+        Mat eigenvectorsMat;
+        eigenNonSymmetric(Mat_1, eigenvaluesMat, eigenvectorsMat);
+        return Matrix(eigenvaluesMat);
+    }
+
+    Matrix eigenvector() // Calculate eigenvalue (only real eigenvalue)
+    {
+        if (row != column)
+        {
+            cerr << "\033[31;1mMatrix must be a square matrix.\033[0m" << endl;
+            return Matrix(this->row, 0);
+        }
+        Mat Mat_1 = toMat(CV_64F);
+        Mat eigenvaluesMat;
+        Mat eigenvectorsMat;
+        eigenNonSymmetric(Mat_1, eigenvaluesMat, eigenvectorsMat);
+        return Matrix(eigenvectorsMat);
+    }
+
+    T trace()
+    {
+        if (column != row)
+        {
+            cerr << "\033[31;1mMatrix should be a square matrix.\033[0m" << endl;
+            return NAN;
+        }
+        T trace = 0;
+        for (int i = 0; i < column; i++)
+        {
+            trace += matrix[i][i];
+        }
+        return trace;
+    }
+
+    //使用伴随矩阵计算矩阵的逆
+    //首先计算矩阵的行列式
+    //而计算行列式需要计算代数余子式
+    //计算代数余子式又需要行列式，所以计算行列式是一个递归过程
+    Matrix smallMatrix(int m, int n) // 计算方块matrix去点m行和n列的矩阵
+    {
+        if (column != row)
+        {
+            cerr << "\033[31;1mMatrix should be a square matrix.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+        Matrix smallMatrix(row - 1, row - 1);
+        for (int i = 0; i < row - 1; i++)
+        {
+            for (int j = 0; j < row - 1; j++)
+            {
+                if (i < m)
+                {
+                    if (j < n)
+                    {
+                        smallMatrix[i][j] = matrix[i][j];
+                    }
+                    else //第n列被抛弃
+                    {
+                        smallMatrix[i][j] = matrix[i][j + 1];
+                    }
+                }
+                else //第m行被抛弃
+                {
+                    if (j < n)
+                    {
+                        smallMatrix[i][j] = matrix[i + 1][j];
+                    }
+                    else
+                    {
+                        smallMatrix[i][j] = matrix[i + 1][j + 1];
+                    }
+                }
+            }
+        }
+        return smallMatrix;
+    }
+
+    double det() //计算行列式，注意只计算实数仿真的行列式，这点需要探讨
+    {
+        double det = 0;
+        if (row != column)
+        {
+            cout << "\033[31;1mMatrix should be a square matrix.\033[0m" << endl;
+            return NAN;
+        }
+        if (column == 1) //递归结束条件
+        {
+            return matrix[0][0];
+        }
+        else
+        {
+
+            for (int i = 0; i < column; i++) //使用矩阵的第一行计算行列式,一行的每一个元素都要递归一次
+            {
+                Matrix small_Matrix = smallMatrix(0, i); //奇怪 small_ 和 small
+                det += matrix[0][i] * pow(-1, i) * small_Matrix.det();
+            }
+        }
+        return det;
+    }
+
+    Matrix inverse()
+    {
+        if (column != row)
+        {
+            cerr << "\033[31;1mMatrix is not a square matrix.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+        double det = this->det();
+        if (det == 0)
+        {
+            cerr << "\033[31;1mMatrix is irreversible, determinant is zero.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+        Matrix matrix_inverse(column, column);
+        for (int i = 0; i < column; i++)
+        {
+            for (int j = 0; j < column; j++)
+            {
+                matrix_inverse[j][i] = pow(-1, i + j) * smallMatrix(i, j).det() / det; //计算代数余子式
+            }
+        }
+        return matrix_inverse;
+    }
+
+    //矩阵旋转180度
+    Matrix rotate_180()
+    {
+        Matrix ans = Matrix(row, column);
+        for (int i = 0; i < row; i++)
+        {
+            for (int j = 0; j < column; j++)
+            {
+                ans[i][j] = matrix[row - 1 - i][column - 1 - j];
+            }
+        }
+        return ans;
+    }
+
+    //矩阵卷积,mode = 0: same mode; mode=1: full mode; mode=2: valid mode.
+    Matrix conv(Matrix kernel, int mode)
+    {
+        if (this->row != this->column)
+        {
+            cerr << "\033[31;1mMatrix is not a square matrix.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+        if (kernel.row != kernel.column)
+        {
+            cerr << "\033[31;1mKernel is not a square matrix.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+        if (kernel.column % 2 != 1)
+        {
+            cerr << "\033[31;1mKernel size must be odd.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+        if (mode != 0 && mode != 1 && mode != 2)
+        {
+            cerr << "\033[31;1mmode is not 0, 1 or 2.\033[0m" << endl;
+            return Matrix(0, 0);
+        }
+
+        int bias_row = kernel.row / 2;
+        int bias_column = kernel.column / 2;
+
+        if (mode == 1)
+        {
+            // cout <<"mode1";
+            Matrix temp = Matrix(row + bias_row * 2, column + bias_column * 2);
+            for (int i = 0; i < row; i++)
+            {
+                for (int j = 0; j < column; j++)
+                {
+                    temp[i + bias_row][j + bias_column] = matrix[i][j];
+                }
+            }
+            return temp.conv(kernel, 0);
+        }
+        else if (mode == 2)
+        {
+            // cout <<"mode2";
+            Matrix ans = Matrix(row - bias_row * 2, column - bias_column * 2);
+            kernel = kernel.rotate_180();
+            for (int i = bias_row; i < row - bias_row; i++)
+            {
+                for (int j = bias_column; j < column - bias_column; j++)
+                {
+                    for (int m = 0; m < kernel.row; m++)
+                    {
+                        for (int n = 0; n < kernel.column; n++)
+                        {
+                            // p , q是被卷积的坐标
+                            int p = i + m - bias_row;
+                            int q = j + n - bias_column;
+                            ans[i - bias_row][j - bias_column] = ans[i - bias_row][j - bias_column] + matrix[p][q] * kernel[m][n];
+                        }
+                    }
+                }
+            }
+            return ans;
+        }
+        else // mode = 0
+        {
+            kernel = kernel.rotate_180();
+            Matrix ans = Matrix(row, column);
+            for (int i = 0; i < row; i++)
+            {
+                for (int j = 0; j < column; j++)
+                {
+                    for (int m = 0; m < kernel.row; m++)
+                    {
+                        for (int n = 0; n < kernel.column; n++)
+                        {
+                            // p , q是被卷积的坐标
+                            int p = i + m - bias_row;
+                            int q = j + n - bias_column;
+                            //默认padding是补0，所以直接忽略
+                            if (p >= 0 && p < row && q >= 0 && q < column)
+                            {
+                                ans[i][j] = ans[i][j] + matrix[p][q] * kernel[m][n];
+                            }
+                        }
+                    }
+                }
+            }
+            return ans;
+        }
     }
 };
