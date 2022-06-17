@@ -500,5 +500,21 @@ int main()
      cout << "Q7 - Test 3: valid mode:" << endl;
      ans = matrix_conv_1.conv(matrix_kernel_1, 2);
      cout << ans << endl;
+
+     vector<vector<double>> vec_kernel_2 = {
+         {1, 0, 1},
+         {0, 1, 0},
+         {1, 0, 1}};
+     Matrix<double> matrix_kernel_2(vec_kernel_2);
+
+     vector<vector<double>> vec_conv_2 = {
+         {0, 1, 2},
+         {3, 4, 5},
+         {6, 7, 8}};
+     Matrix<double> matrix_conv_2(vec_conv_2);
+
+     ans = matrix_conv_2.conv(matrix_kernel_2, 0, 2, 1);
+     cout << ans << endl;
+
      return 0;
 }
