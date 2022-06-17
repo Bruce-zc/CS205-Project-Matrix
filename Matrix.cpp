@@ -763,10 +763,10 @@ public:
         return trace;
     }
 
-    //Compute the inverse of a matrix using an adjoint matrix
-    //first calculate the determinant of the matrix
-    //and calculating the determinant requires calculating the algebraic remainder
-    //Computing the algebraic remainder requires the determinant, so computing the determinant is a recursive process
+    // Compute the inverse of a matrix using an adjoint matrix
+    // first calculate the determinant of the matrix
+    // and calculating the determinant requires calculating the algebraic remainder
+    // Computing the algebraic remainder requires the determinant, so computing the determinant is a recursive process
 
     // Get a matrix without the a row and column
     Matrix smallMatrix(int m, int n)
@@ -871,10 +871,9 @@ public:
         return ans;
     }
 
-    //Convolution ,mode = 0: same mode; mode=1: full mode; mode=2: valid mode.
-    Matrix conv(Matrix kernel, int mode)
+    // Convolution ,mode = 0: same mode; mode=1: full mode; mode=2: valid mode.
+    Matrix conv(Matrix kernel, int mode = 0, int stride = 1, int padding = 0)
     {
-
         if (this->row != this->column)
         {
             cerr << "\033[31;1mMatrix is not a square matrix.\033[0m" << endl;
@@ -895,10 +894,30 @@ public:
             cerr << "\033[31;1mmode is not 0, 1 or 2.\033[0m" << endl;
             return Matrix(0, 0);
         }
-
+        if (stride != 1 || padding != 0)
+        {
+            mode = 2;
+        }
         int bias_row = kernel.row / 2;
         int bias_column = kernel.column / 2;
 
+        if (padding != 0)
+        {
+            if ((this->row + 2 * padding - kernel.row) % stride != 0)
+            {
+                cerr << "\033[31;1mThe padded matrix cannot be divisible by the stride\033[0m" << endl;
+                return Matrix(0, 0);
+            }
+            Matrix temp = Matrix(row + 2 * padding, column + 2 * padding);
+            for (int i = 0; i < row; i++)
+            {
+                for (int j = 0; j < column; j++)
+                {
+                    temp[i + padding][j + padding] = matrix[i][j];
+                }
+            }
+            return temp.conv(kernel, 2, stride, 0);
+        }
         if (mode == 1)
         {
             // cout <<"mode1";
@@ -915,27 +934,26 @@ public:
         else if (mode == 2)
         {
             // cout <<"mode2";
-            Matrix ans = Matrix(row - bias_row * 2, column - bias_column * 2);
+            Matrix ans = Matrix((row - kernel.row) / stride + 1, (row - kernel.row) / stride + 1);
             kernel = kernel.rotate_180();
-            for (int i = bias_row; i < row - bias_row; i++)
+            for (int i = bias_row; i < row - bias_row; i += stride)
             {
-                for (int j = bias_column; j < column - bias_column; j++)
+                for (int j = bias_column; j < column - bias_column; j += stride)
                 {
                     for (int m = 0; m < kernel.row; m++)
                     {
                         for (int n = 0; n < kernel.column; n++)
                         {
-                           // p, q are the coordinates of the matrix to be convolved
+                            // p , q是被卷积的坐标
                             int p = i + m - bias_row;
                             int q = j + n - bias_column;
-                            ans[i - bias_row][j - bias_column] = ans[i - bias_row][j - bias_column] + matrix[p][q] * kernel[m][n];
+                            ans[(i - bias_row) / stride][(j - bias_column) / stride] = ans[(i - bias_row) / stride][(j - bias_column) / stride] + matrix[p][q] * kernel[m][n];
                         }
                     }
                 }
             }
             return ans;
         }
-
         else // mode = 0
         {
             kernel = kernel.rotate_180();
@@ -948,10 +966,10 @@ public:
                     {
                         for (int n = 0; n < kernel.column; n++)
                         {
-                            // p, q are the coordinates of the matrix to be convolved
+                            // p , q是被卷积的坐标
                             int p = i + m - bias_row;
                             int q = j + n - bias_column;
-                            // padding = 0 by default
+                            //默认padding是补0，所以直接忽略
                             if (p >= 0 && p < row && q >= 0 && q < column)
                             {
                                 ans[i][j] = ans[i][j] + matrix[p][q] * kernel[m][n];
@@ -966,7 +984,7 @@ public:
 };
 
 template <class T>
-struct Trituple //Element of Sparse Matrix
+struct Trituple // Element of Sparse Matrix
 {
     int x, y;
     T val;
@@ -1069,7 +1087,7 @@ public:
             {
                 if (it1->x == it2->x && it1->y == it2->y)
                 {
-                    if(it1->val + it2->val != 0)
+                    if (it1->val + it2->val != 0)
                     {
                         answer.tuple_list.push_back(Trituple<T>{it1->x, it1->y, it1->val + it2->val});
                         answer.terms++;
@@ -1095,13 +1113,13 @@ public:
             }
             else
             {
-                if(it1 < tuple_list.end())
+                if (it1 < tuple_list.end())
                 {
                     answer.tuple_list.push_back(*it1);
                     answer.terms++;
                     it1++;
                 }
-                if(it2 < other.tuple_list.end())
+                if (it2 < other.tuple_list.end())
                 {
                     answer.tuple_list.push_back(*it2);
                     answer.terms++;
@@ -1121,10 +1139,12 @@ public:
         }
         for (int i = 0; i < other.terms - 1; i++)
         {
-            os << "Element " << i + 1 << ": " << "[" << other.tuple_list[i].x << "][" << other.tuple_list[i].y << "] = " << other.tuple_list[i].val << endl;
+            os << "Element " << i + 1 << ": "
+               << "[" << other.tuple_list[i].x << "][" << other.tuple_list[i].y << "] = " << other.tuple_list[i].val << endl;
         }
-        os  << "Element " << other.terms << ": "<< "[" << other.tuple_list[other.terms - 1].x << "]["
-            << other.tuple_list[other.terms - 1].y << "] = " << other.tuple_list[other.terms - 1].val;
+        os << "Element " << other.terms << ": "
+           << "[" << other.tuple_list[other.terms - 1].x << "]["
+           << other.tuple_list[other.terms - 1].y << "] = " << other.tuple_list[other.terms - 1].val;
         return os;
     }
 };
