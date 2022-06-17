@@ -10,6 +10,12 @@ using namespace std;
 using namespace cv;
 
 template <class T>
+class SparseMatrix;
+
+template <class T>
+struct Trituple;
+
+template <class T>
 class Matrix
 {
 private:
@@ -48,11 +54,26 @@ public:
 
     /* Constructor with a matrix:
     -- Copy the matrix. */
-    Matrix(Matrix const &other)
+    Matrix(Matrix const &matrix1)
     {
-        this->row = other.row;
-        this->column = other.column;
-        this->matrix = other.matrix;
+        this->row = matrix1.row;
+        this->column = matrix1.column;
+        this->matrix = matrix1.matrix;
+    }
+
+    Matrix(SparseMatrix<T> &smatrix1)
+    {
+        row = smatrix1.getRow();
+        column = smatrix1.getColumn();
+        matrix.resize(row);
+        for (int i = 0; i < row; i++)
+        {
+            this->matrix[i].resize(column);
+        }
+        for (Trituple<T> &t : smatrix1.getTupleList())
+        {
+            matrix[t.x][t.y] = t.val;
+        }
     }
 
     // Two query functions to get the size of the private matrix.
@@ -746,6 +767,7 @@ public:
     //首先计算矩阵的行列式
     //而计算行列式需要计算代数余子式
     //计算代数余子式又需要行列式，所以计算行列式是一个递归过程
+
     Matrix smallMatrix(int m, int n) // 计算方块matrix去点m行和n列的矩阵
     {
         if (column != row)
@@ -850,6 +872,7 @@ public:
     //矩阵卷积,mode = 0: same mode; mode=1: full mode; mode=2: valid mode.
     Matrix conv(Matrix kernel, int mode)
     {
+
         if (this->row != this->column)
         {
             cerr << "\033[31;1mMatrix is not a square matrix.\033[0m" << endl;
@@ -910,6 +933,7 @@ public:
             }
             return ans;
         }
+
         else // mode = 0
         {
             kernel = kernel.rotate_180();
@@ -936,5 +960,170 @@ public:
             }
             return ans;
         }
+    }
+};
+
+template <class T>
+struct Trituple //Element of Sparse Matrix
+{
+    int x, y;
+    T val;
+    bool operator<(Trituple &other)
+    {
+        return x < other.x || (x == other.x && y < other.y);
+    }
+};
+
+template <class T>
+class SparseMatrix
+{
+private:
+    int row, column;
+    int terms, maxTerms;
+    vector<Trituple<T>> tuple_list;
+
+public:
+    SparseMatrix() : row(0), column(0), terms(0), maxTerms(0) {}
+    SparseMatrix(int row = 0, int column = 0) : terms(0), maxTerms(0)
+    {
+        this->row = row;
+        this->column = column;
+        this->maxTerms = row * column;
+    }
+    // 使用自己定义的Matirx声明
+    SparseMatrix(Matrix<T> &other) : terms(0)
+    {
+        row = other.getRow();
+        column = other.getColumn();
+        maxTerms = row * column;
+        for (int i = 0; i < other.getRow(); i++)
+        {
+            for (int j = 0; j < other.getColumn(); j++)
+            {
+                if (other[i][j] != 0)
+                {
+                    tuple_list.push_back(Trituple<T>{i, j, other[i][j]});
+                    terms++;
+                }
+            }
+        }
+    }
+    vector<Trituple<T>> getTupleList()
+    {
+        return tuple_list;
+    }
+    int getRow()
+    {
+        return row;
+    }
+    int getColumn()
+    {
+        return column;
+    }
+    int getTerms()
+    {
+        return terms;
+    }
+    bool insert(int x, int y, T val)
+    {
+        Trituple<T> other;
+        other.x = x;
+        other.y = y;
+        other.val = val;
+        return insert(other);
+    }
+    bool insert(Trituple<T> other)
+    {
+        if (other.x < 0 || other.x >= row || other.y < 0 || other.y >= column || terms >= maxTerms)
+        {
+            cerr << "\033[31;1mThe position is out of range.\033[0m" << endl;
+            return false;
+        }
+        for (Trituple<T> &t : tuple_list) // 去除重复元素
+        {
+            if (t.x == other.x && t.y == other.y)
+            {
+                t.val = other.val;
+                return true;
+            }
+        }
+        terms++;
+        tuple_list.push_back(other);
+        sort(tuple_list.begin(), tuple_list.end());
+        return true;
+    }
+    SparseMatrix operator+(SparseMatrix other)
+    {
+        if (row != other.row || column != other.column)
+        {
+            cerr << "\033[31;1mError, the columns and rows should be equal.\033[0m" << endl;
+            return SparseMatrix(0, 0);
+        }
+        SparseMatrix answer(other.row, other.column);
+        auto it1 = tuple_list.begin();
+        auto it2 = other.tuple_list.begin();
+        while (it1 < tuple_list.end() || it2 < other.tuple_list.end())
+        {
+            if (it1 < tuple_list.end() && it2 < other.tuple_list.end())
+            {
+                if (it1->x == it2->x && it1->y == it2->y)
+                {
+                    if(it1->val + it2->val != 0)
+                    {
+                        answer.tuple_list.push_back(Trituple<T>{it1->x, it1->y, it1->val + it2->val});
+                        answer.terms++;
+                    }
+                    it1++;
+                    it2++;
+                }
+                else
+                {
+                    if (*it1 < *it2)
+                    {
+                        answer.tuple_list.push_back(*it1);
+                        answer.terms++;
+                        it1++;
+                    }
+                    else
+                    {
+                        answer.tuple_list.push_back(*it2);
+                        answer.terms++;
+                        it2++;
+                    }
+                }
+            }
+            else
+            {
+                if(it1 < tuple_list.end())
+                {
+                    answer.tuple_list.push_back(*it1);
+                    answer.terms++;
+                    it1++;
+                }
+                if(it2 < other.tuple_list.end())
+                {
+                    answer.tuple_list.push_back(*it2);
+                    answer.terms++;
+                    it2++;
+                }
+            }
+        }
+        return answer;
+    }
+    friend ostream &operator<<(ostream &os, SparseMatrix other)
+    {
+        os << "INFORMATION: Row = " << other.row << ", column = " << other.column << ", number of terms = " << other.terms << ".\nItems: " << endl;
+        if (other.terms == 0)
+        {
+            os << "[]";
+            return os;
+        }
+        for (int i = 0; i < other.terms - 1; i++)
+        {
+            os << "Element " << i + 1 << ": " << "[" << other.tuple_list[i].x << "][" << other.tuple_list[i].y << "] = " << other.tuple_list[i].val << endl;
+        }
+        os  << "Element " << other.terms << ": "<< "[" << other.tuple_list[other.terms - 1].x << "]["
+            << other.tuple_list[other.terms - 1].y << "] = " << other.tuple_list[other.terms - 1].val;
+        return os;
     }
 };
