@@ -1071,64 +1071,7 @@ public:
         sort(tuple_list.begin(), tuple_list.end());
         return true;
     }
-    SparseMatrix operator+(SparseMatrix other)
-    {
-        if (row != other.row || column != other.column)
-        {
-            cerr << "\033[31;1mError, the columns and rows should be equal.\033[0m" << endl;
-            return SparseMatrix(0, 0);
-        }
-        SparseMatrix answer(other.row, other.column);
-        auto it1 = tuple_list.begin();
-        auto it2 = other.tuple_list.begin();
-        while (it1 < tuple_list.end() || it2 < other.tuple_list.end())
-        {
-            if (it1 < tuple_list.end() && it2 < other.tuple_list.end())
-            {
-                if (it1->x == it2->x && it1->y == it2->y)
-                {
-                    if (it1->val + it2->val != 0)
-                    {
-                        answer.tuple_list.push_back(Trituple<T>{it1->x, it1->y, it1->val + it2->val});
-                        answer.terms++;
-                    }
-                    it1++;
-                    it2++;
-                }
-                else
-                {
-                    if (*it1 < *it2)
-                    {
-                        answer.tuple_list.push_back(*it1);
-                        answer.terms++;
-                        it1++;
-                    }
-                    else
-                    {
-                        answer.tuple_list.push_back(*it2);
-                        answer.terms++;
-                        it2++;
-                    }
-                }
-            }
-            else
-            {
-                if (it1 < tuple_list.end())
-                {
-                    answer.tuple_list.push_back(*it1);
-                    answer.terms++;
-                    it1++;
-                }
-                if (it2 < other.tuple_list.end())
-                {
-                    answer.tuple_list.push_back(*it2);
-                    answer.terms++;
-                    it2++;
-                }
-            }
-        }
-        return answer;
-    }
+
     friend ostream &operator<<(ostream &os, SparseMatrix other)
     {
         os << "INFORMATION: Row = " << other.row << ", column = " << other.column << ", number of terms = " << other.terms << ".\nItems: " << endl;
