@@ -763,12 +763,13 @@ public:
         return trace;
     }
 
-    //使用伴随矩阵计算矩阵的逆
-    //首先计算矩阵的行列式
-    //而计算行列式需要计算代数余子式
-    //计算代数余子式又需要行列式，所以计算行列式是一个递归过程
+    //Compute the inverse of a matrix using an adjoint matrix
+    //first calculate the determinant of the matrix
+    //and calculating the determinant requires calculating the algebraic remainder
+    //Computing the algebraic remainder requires the determinant, so computing the determinant is a recursive process
 
-    Matrix smallMatrix(int m, int n) // 计算方块matrix去点m行和n列的矩阵
+    // Get a matrix without the a row and column
+    Matrix smallMatrix(int m, int n)
     {
         if (column != row)
         {
@@ -786,12 +787,12 @@ public:
                     {
                         smallMatrix[i][j] = matrix[i][j];
                     }
-                    else //第n列被抛弃
+                    else // Remove the n-th column
                     {
                         smallMatrix[i][j] = matrix[i][j + 1];
                     }
                 }
-                else //第m行被抛弃
+                else // Remove the m-th row
                 {
                     if (j < n)
                     {
@@ -807,7 +808,8 @@ public:
         return smallMatrix;
     }
 
-    double det() //计算行列式，注意只计算实数仿真的行列式，这点需要探讨
+    // Calculate determinant
+    double det()
     {
         double det = 0;
         if (row != column)
@@ -815,16 +817,16 @@ public:
             cout << "\033[31;1mMatrix should be a square matrix.\033[0m" << endl;
             return NAN;
         }
-        if (column == 1) //递归结束条件
+        if (column == 1) // Terminal case
         {
             return matrix[0][0];
         }
         else
         {
 
-            for (int i = 0; i < column; i++) //使用矩阵的第一行计算行列式,一行的每一个元素都要递归一次
+            for (int i = 0; i < column; i++) // Use the first row to calculate the determinant
             {
-                Matrix small_Matrix = smallMatrix(0, i); //奇怪 small_ 和 small
+                Matrix small_Matrix = smallMatrix(0, i);
                 det += matrix[0][i] * pow(-1, i) * small_Matrix.det();
             }
         }
@@ -849,13 +851,13 @@ public:
         {
             for (int j = 0; j < column; j++)
             {
-                matrix_inverse[j][i] = pow(-1, i + j) * smallMatrix(i, j).det() / det; //计算代数余子式
+                matrix_inverse[j][i] = pow(-1, i + j) * smallMatrix(i, j).det() / det; // Compute the cofactor
             }
         }
         return matrix_inverse;
     }
 
-    //矩阵旋转180度
+    // Rotate the matrix by 180 degrees
     Matrix rotate_180()
     {
         Matrix ans = Matrix(row, column);
@@ -869,7 +871,7 @@ public:
         return ans;
     }
 
-    //矩阵卷积,mode = 0: same mode; mode=1: full mode; mode=2: valid mode.
+    //Convolution ,mode = 0: same mode; mode=1: full mode; mode=2: valid mode.
     Matrix conv(Matrix kernel, int mode)
     {
 
@@ -923,7 +925,7 @@ public:
                     {
                         for (int n = 0; n < kernel.column; n++)
                         {
-                            // p , q是被卷积的坐标
+                           // p, q are the coordinates of the matrix to be convolved
                             int p = i + m - bias_row;
                             int q = j + n - bias_column;
                             ans[i - bias_row][j - bias_column] = ans[i - bias_row][j - bias_column] + matrix[p][q] * kernel[m][n];
@@ -946,10 +948,10 @@ public:
                     {
                         for (int n = 0; n < kernel.column; n++)
                         {
-                            // p , q是被卷积的坐标
+                            // p, q are the coordinates of the matrix to be convolved
                             int p = i + m - bias_row;
                             int q = j + n - bias_column;
-                            //默认padding是补0，所以直接忽略
+                            // padding = 0 by default
                             if (p >= 0 && p < row && q >= 0 && q < column)
                             {
                                 ans[i][j] = ans[i][j] + matrix[p][q] * kernel[m][n];
@@ -990,7 +992,6 @@ public:
         this->column = column;
         this->maxTerms = row * column;
     }
-    // 使用自己定义的Matirx声明
     SparseMatrix(Matrix<T> &other) : terms(0)
     {
         row = other.getRow();
@@ -1039,7 +1040,7 @@ public:
             cerr << "\033[31;1mThe position is out of range.\033[0m" << endl;
             return false;
         }
-        for (Trituple<T> &t : tuple_list) // 去除重复元素
+        for (Trituple<T> &t : tuple_list) // Remove repeated elements
         {
             if (t.x == other.x && t.y == other.y)
             {
